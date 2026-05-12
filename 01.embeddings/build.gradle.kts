@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.knuddels:jtokkit:1.1.0")
 }
 
 tasks.test {
