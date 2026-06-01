@@ -29,7 +29,8 @@ public class EmbeddingTest {
                 .lines().reduce(String::concat).orElse("");
 
         EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-        // Cambiar el modelo puede producir un número diferente de tokens, ya que cada modelo tiene su propio vocabulario y reglas de tokenización
+        // Cambiar el modelo puede producir un número diferente de tokens, ya que cada modelo tiene su propio
+        // vocabulario y reglas de tokenization
         Encoding tokenizer = registry.getEncodingForModel(ModelType.TEXT_DAVINCI_003);
 
         var enc_text = tokenizer.encode(raw_text);
@@ -57,7 +58,7 @@ public class EmbeddingTest {
         System.out.println("    " + tokenizer.decode(targetTokens));
 
         //-----------
-        // generacion de par (input target)
+        // generación de par (input target)
         List<DatasetItem> dataset = new ArrayList<>();
 
         List<Integer> tokensIds = tokenizer.encode(raw_text).boxed();
@@ -75,17 +76,27 @@ public class EmbeddingTest {
         //-----------
         // Prueba de Embedding
         int vocabSize = 50257;
-        int putputDim = 256;
+        int outputDim = 256;
 
         try (NDManager manager = NDManager.newBaseManager()) {
             NDArray weights = manager.randomUniform(
                     -1.0f,
                     1.0f,
-                    new Shape(vocabSize, putputDim));
+                    new Shape(vocabSize, outputDim));
 
             // ahora lo que debemos hacer es pasar el dataset (la libreria trabaja con Long)
+            // usamos AtomicInteger pq count++ no se admite en funciones lambda
+            // la intención de esto es contar cuantos items del dataset se están procesando
             AtomicInteger count = new AtomicInteger(0);
 
+            // Cada chunk se convierte en un embedding: se toman los índices del chunk, se buscan sus vectores en una
+            // matriz de pesos (weights.get(indices)), y se obtiene la representación vectorial de ese chunk.
+            // Se mapea a Long (línea 94: Integer::longValue) porque la API de DJL (Deep Java Library)
+            // específicamente NDManager.create() — espera un array de tipo long[] para crear un NDArray de índices.
+            // Los NDArray de DJL representan los índices como enteros de 64 bits (long), que es el estándar en
+            // frameworks de deep learning como PyTorch/MXNet para operaciones de indexación (como weights.get(indices)).
+            // Los IDs de tokens de jtokkit vienen como Integer (32 bits), por lo que es necesario convertirlos a
+            // Long (64 bits) para que DJL los acepte.
             dataset
                     .forEach(item -> {
                         var input = item.input().stream()
@@ -94,11 +105,13 @@ public class EmbeddingTest {
 
                         NDArray indices = manager.create(input);
                         NDArray embedding = weights.get(indices);
+                        System.out.println("Item #" + count.incrementAndGet());
                         System.out.println(embedding);
                         System.out.println("------------------------------");
                         System.out.println("Input indices: " + Arrays.toString(input));
                         System.out.println("Embedding output shape: " + embedding);
                     });
+            System.out.println("Total items procesados: " + count.get());
         }
 
         // uso de LangChain4j para el uso de modelos de embedding preentrenados

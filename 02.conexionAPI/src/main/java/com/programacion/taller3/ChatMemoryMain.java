@@ -1,8 +1,7 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 
 import java.util.Scanner;

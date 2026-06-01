@@ -1,4 +1,4 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;

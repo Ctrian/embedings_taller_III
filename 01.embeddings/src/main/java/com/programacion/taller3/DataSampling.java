@@ -52,6 +52,10 @@ public class DataSampling {
         // generacion de par (input target)
         List<DatasetItem> dataset = new ArrayList<>();
 
+        // .boxed() convierte los primitivos int del IntArrayList de jtokkit en su clase wrapper Integer, retornando un List<Integer>.
+        //Esto es necesario porque IntArrayList almacena int (primitivos), pero las APIs estándar de Java como
+        // List.subList(), stream(), etc. trabajan con objetos, no con primitivos. Sin .boxed(), no podrías hacer
+        // tokensIds.subList(i, i + maxLength) en la línea 61, ya que subList es un método de List<Integer>, no de IntArrayList.
         List<Integer> tokensIds = tokenizer.encode(raw_text).boxed();
 
         int maxLength = 4;

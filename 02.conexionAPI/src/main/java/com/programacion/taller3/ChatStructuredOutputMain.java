@@ -1,4 +1,4 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.UserMessage;

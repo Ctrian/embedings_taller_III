@@ -1,4 +1,4 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;

@@ -1,7 +1,7 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import org.example.utils.MyStreamingChatresponseHandler;
+import com.programacion.taller3.utils.MyStreamingChatresponseHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

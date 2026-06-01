@@ -1,7 +1,7 @@
-package org.example;
+package com.programacion.taller3;
 
 import dev.langchain4j.service.AiServices;
-import org.example.utils.AsistenteLegal;
+import com.programacion.taller3.utils.AsistenteLegal;
 
 public class ChatAiServiceMain {
     public static void main(String[] args) {

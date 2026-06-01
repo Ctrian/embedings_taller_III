@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/01.embeddings" />
             <option value="$PROJECT_DIR$/02.conexionAPI" />
+            <option value="$PROJECT_DIR$/03.SpringAI" />
           </set>
         </option>
       </GradleProjectSettings>
