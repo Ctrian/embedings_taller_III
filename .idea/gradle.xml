@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/01.embeddings" />
             <option value="$PROJECT_DIR$/02.conexionAPI" />
             <option value="$PROJECT_DIR$/03.SpringAI" />
+            <option value="$PROJECT_DIR$/10.spring-prompt" />
           </set>
         </option>
       </GradleProjectSettings>

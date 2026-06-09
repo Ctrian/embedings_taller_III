@@ -120,4 +120,51 @@ DatasetItem (input, target) → List<DatasetItem>
 
 ---
 
-*Notas generadas para revisión - Taller III*
+## Conexion con otros archivos del proyecto
+
+> **Estudiante:** Este documento cubre el Bloque B (jtokkit + sliding window). Conecta directamente con el Bloque A (tokenizacion manual) y el Bloque C (embeddings).
+
+### De donde viene y hacia donde va:
+
+```
+Bloque A (tokenizacion manual)          Bloque B (jtokkit + sliding window)     Bloque C (embeddings)
+─────────────────────────────           ─────────────────────────────────       ─────────────────────
+TokenizerV1/V2                          TokkitTokenizer.java                    EmbeddingTest.java
+TestTokenizerMain.java                  DataSampling.java                       (DJL + LangChain4j)
+Pair.java                               DatasetItem.java
+
+Regex personalizada                     BPE real de OpenAI                      Lookup table DJL
+Vocabulario del corpus                  Vocabulario de GPT (50k+ tokens)        Vectores preentrenados
+IDs secuenciales (0,1,2...)            IDs del modelo (dispersos)              weights.get(indices)
+```
+
+### Diferencia clave entre tokenizacion manual y jtokkit:
+
+| Aspecto | TokenizerV1/V2 (Bloque A) | jtokkit (Bloque B) |
+|---------|---------------------------|---------------------|
+| Regex | Personalizada del proyecto | BPE real de OpenAI |
+| Vocabulario | Solo palabras del corpus | 50,257+ subpalabras |
+| Subpalabras | No soportadas | Si ("uncomfortable" → "un", "comfort", "able") |
+| Unknowns | `<\|unk\|>` (V2) | Raramente ocurren (BPE cubre casi todo) |
+| Uso | Educativo (entender el concepto) | Produccion (tokenizacion real) |
+
+### El mismo `.boxed()` aparece en multiples archivos:
+- `DataSampling.java:28` — `enc_text.boxed()` → primera aparicion
+- `DataSampling.java:59` — `tokenizer.encode(raw_text).boxed()` → al generar dataset
+- `EmbeddingTest.java:37` — mismo patron
+- Sin `.boxed()` no puedes hacer `subList()` — es un requisito tecnico de Java
+
+### Sliding window — la misma idea aparece en chat (Bloque E):
+- **DataSampling**: ventana de tokens para crear pares input-target (training data)
+- **MessageWindowChatMemory**: ventana de mensajes para mantener contexto (chat con memoria)
+- Ambas son "ventanas deslizantes" que descartan lo antiguo cuando se llenan
+
+### El `DatasetItem` que generas aqui se consume en:
+- `EmbeddingTest.java` — los pares input/target se usan para demostrar embedding lookup
+- Cada `DatasetItem.input` se convierte en indices `long[]` para hacer `weights.get(indices)`
+
+### Ver tambien:
+- `tokenizer-notas-estudio.md` — Bloque A: tokenizacion manual V1/V2
+- `embeddings_con_djl_y_langchain4j.md` — Bloque C: de tokens a vectores
+- `GUIA_DE_ESTUDIO.md` (raiz) — Ejercicios B1-B4 con claves de correccion
+- `REPASO_EXAMEN.md` (raiz) — Repaso integrador de todos los bloques

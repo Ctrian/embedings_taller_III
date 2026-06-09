@@ -12,6 +12,10 @@ public class SimilitudMain {
         Embedding embedding2 = model.embed("Amo a los caninos").content();
         Embedding embedding3 = model.embed("El clima esta soleado").content();
 
+        System.out.println("dimension del modelo AllMiniLmL6V2: " +
+                embedding1.vector().length
+        );
+
         // Calculamos la similitud con el coseno
         double sim1 = CosineSimilarity.between(embedding1, embedding2);
         double sim2 = CosineSimilarity.between(embedding1, embedding3);

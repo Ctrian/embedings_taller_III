@@ -5,8 +5,6 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 
 public class ChatMain {
 
-    //modelo local: llama-3.2-1b-instruct-q8_0.gguf
-
     public static ChatModel chatModel() {
         return OpenAiChatModel
                 .builder()

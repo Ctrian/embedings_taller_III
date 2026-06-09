@@ -1,0 +1,18 @@
+server:
+  port: 8090
+
+app:
+  key: xyz
+  aimodel: llama-3.2
+
+spring:
+  ai:
+    openai:
+      api-key: ${app.key}
+      base-url: http://localhost:8080
+      chat:
+        model: ${app.aimodel}
+
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG

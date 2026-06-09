@@ -36,11 +36,10 @@ necesita convertir texto a numeros (token IDs) antes de procesarlo.
 
 **Tu respuesta:**
 ```
-// ESCRIBE AQUI
-
-
-
-
+Un token es una representación de una palabra, conjunto de palabras o incluso caracteres
+Un vocabulario es una representacion a modo de clave valor donde el token tiene la posicion del token
+Los LLMs no entienden texto, por lo cual se usa un calculo probabilistico para predecir el siguiente token, y 
+para eso necesitan convertir el texto en numeros
 ```
 
 ---
@@ -65,17 +64,17 @@ c) Que pasa con `"Hello--world"`? Cuales son los tokens resultantes?
 **Tu respuesta:**
 ```
 // A)
-
+Le dice que haga un corte antes de una coma, un punto, dos puntos, etc. o un espacio
 
 
 
 // B)
-
+Por que hay un corte con lookahead y otro con lookbehind, entonces la puntuacion queda entre ambos cortes, como un token separado
 
 
 
 // C)
-
+"Hello--world" se convierte en ["Hello", "--", "world"]
 
 
 
@@ -101,22 +100,22 @@ d) Por que V1 es problematico para un modelo de lenguaje?
 **Tu respuesta:**
 ```
 // A)
-
-
-
+Pair[tokenId=0, token=hello]
+Pair[tokenId=1, token=test]
+Pair[tokenId=2, token=world]
 
 // B)
-
-
-
+Pair[tokenId=0, token=hello]
+Pair[tokenId=1, token=test]
+Pair[tokenId=2, token=world]
+Pair[tokenId=3, token=<|unk|>]
 
 // C)
-
-
-
+En V1 se usa `strToInt.get(token)` que devuelve null para tokens desconocidos, mientras que en V2 se usa
+`strToInt.getOrDefault(token, strToInt.get("<|unk|>"))` que devuelve el ID de `<|unk|>` para tokens desconocidos.
 
 // D)
-
+Pierde informacion importante, el modelo ve secuencias con huecos (nulls) en vez de una señal clara de "token desconocido".
 
 
 
@@ -135,12 +134,43 @@ Escribe pseudocodigo (o codigo Java) del metodo `vocabulary(filename)` de
 `TestTokenizerMain.java`. Explica cada paso. No mires el codigo original.
 
 **Tu respuesta:**
+
 ```java
-// ESCRIBE TU IMPLEMENTACION AQUI
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
+record Pair(Integer tokenId, String token){}
 
+// lee el archivo .txt
+String text = Files.readString(Path.of(filename));
 
+        se usa
+        una regex
+        para dividir
+        el texto
+        en tokens
+        String regex = "(?=[,.:;?_!\"()']|--|\\s)|(?<=[,.:;?_!\"()']|--|\\a)";
 
+        // preservamos valores usando split
+        var tokens = text.split(regex);
+
+        // limpieza
+        var pre = Stream.of(tokens)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        // ordenar
+        var all = pre.stream()
+                .distinct()
+                .sorted()
+                .toList();
+
+// asignar IDs con AtomicInteger x el lambda
+        AtomicInteger i = new AtomicInteger(0);
+        return all.stream()
+        .map(it->new Pair(i.getAndIncrement(), it))
+        .toList();
 
 
 
@@ -165,17 +195,14 @@ c) Por que estos tokens se agregan DESPUES de construir el vocabulario del corpu
 **Tu respuesta:**
 ```
 // A)
-
-
-
+sirve para identificar caracteres o palabras que no se encuentran en el vocabulario
 
 // B)
-
-
-
+sirve para identificar cual es el final de una entrada de texto, si se quiere entrenar con varios textos, el poder 
+separarlos con un token de este tipo es fundamental para que el modelo aprenda a identificar los limites entre textos
 
 // C)
-
+Por convención, normalmente se agregan al final por que no son parte del vocabulario
 
 
 
@@ -201,17 +228,14 @@ c) Cuantos tokens tiene aproximadamente el vocabulario de GPT-4 vs TEXT_DAVINCI_
 **Tu respuesta:**
 ```
 // A)
-
-
-
+Carga un vocabulario de GPT4, valores por defecto del modelo
 
 // B)
-
-
-
+En encodeOrdinary hay 9 tokens lo cual quiere decir que se esta dividiendo el caracter especial <|endoftext|> en tokens separados
+encode Lanza UnsupportedOperationException al detectar `<
 
 // C)
-
+gpt tiene alrededor de 100k tokens, da vinci solo muestra com.knuddels.jtokkit.GptBytePairEncoding@4e8f0bb9
 
 
 
@@ -237,19 +261,19 @@ c) Por que el target es el input desplazado 1 posicion? Que aprendizaje represen
 **Tu respuesta:**
 ```
 // A)
-
-
-
+input: 10,20,30  target: 40
+input: 20,30,40  target: 50
+input: 30,40,50  target: 60
+input: 40,50,60  target: 70
 
 // B)
-
-
-
+pares = n - k
+pares = 7 - 3
+pares = 4
 
 // C)
-
-
-
+la idea es predecir la siguiente palabra, usando las anteriores como contexto, entonces el target es el input
+desplazado 1 posicion para que el modelo aprenda a predecir la siguiente palabra, se usa slice windows
 
 ```
 
@@ -270,19 +294,14 @@ c) Que pasaria si NO llamas `.boxed()`?
 **Tu respuesta:**
 ```
 // A)
-
-
-
+Para convertir el IntArrayList de tokens (que es una lista de primitivos int) a una List<Integer> que es una
+lista de objetos Integer, ya que subList no funciona con tipos primitivos
 
 // B)
-
-
-
+jtokkit.encode() devuelve IntArrayList y List.subList() necesita List<Integer>
 
 // C)
-
-
-
+da un error de compilacion, no se puede convertir IntArrayList a List<Integer>
 
 ```
 
@@ -302,17 +321,17 @@ c) Por que `input` y `target` son `List<Integer>` y no `int[]`?
 **Tu respuesta:**
 ```java
 // A)
-
+Es una clase inmutable que tiene dos campos: List<Integer> input y List<Integer> target, se usa para representar una
+muestra de entrenamiento con su secuencia de entrada y su secuencia objetivo
 
 ```
 ```
 // B)
-
-
-
+50
 
 // C)
-
+se usan List debido a que permite .add .remove y otras operaciones de coleccion, ademas de ser mas flexible en tamaño,
+mientras que un int[] es de tamaño fijo y no tiene metodos de coleccion
 
 
 
@@ -340,24 +359,20 @@ d) Por que los embeddings aleatorios (random uniform) no capturan significado
 **Tu respuesta:**
 ```
 // A)
-
-
-
+Es la capa que contiene a cada token del vocabulario representado como un vector de numeros, en el codigo se representa
+con la clase NDArray weights, donde cada fila es el embedding de un token
 
 // B)
-
-
-
+50257 es el numero de tokens en el vocabulario, 256 es la dimension del vector de embedding para cada token
+filas y columnas del embedding
 
 // C)
-
-
-
+weights.get(42) devuelve el vector de embedding para el token con ID 42, es decir la fila 42 de la matriz de pesos
 
 // D)
-
-
-
+debido a que no cuentan con el mecanismo de atencion, no se entrenan para capturar relaciones semanticas entre
+palabras, mientras que los preentrenados si se entrenan con grandes corpus de texto y aprenden a representar el
+significado de las palabras en los vectores de embedding
 
 ```
 
@@ -379,18 +394,25 @@ c) `weights.get(indices)` — que hace exactamente este metodo?
 **Tu respuesta:**
 ```
 // A)
-
-
-
+NDManager es el encargado de administrar la memoria de los tensores (NDArray) en DJL, si no lo cierras, puedes tener
+fugas de memoria ya que los tensores no se liberan correctamente
 
 // B)
+NDManager manager = NDManager.newBaseManager()
 
+NDArray weights =
+        manager.randomNormal(
+            0f,
+            1f,
+            new Shape(50257, 256),
+            DataType.FLOAT32
+        );
 
-
+    System.out.println(weights.getShape());
 
 // C)
-
-
+obtiene los valores del embedding, los valores representativos del vector dado un indice, los indices deben ser long
+por que el metodo get de NDArray espera un array de long como parametro, no un array de int
 
 
 ```
@@ -413,24 +435,18 @@ d) En `EmbeddingModelMain.java`, que es `PoolingMode.MEAN` y por que es necesari
 **Tu respuesta:**
 ```
 // A)
-
-
-
+es un formato para representar modelo de ML, Langchain4j lo usa para ejecutar modelos localmente sin necesidad de una
+API externa, permite usar modelos preentrenados de forma eficiente
 
 // B)
-
-
-
+cuantizado significa que los pesos del modelo se han convertido a un formato de menor precision (por ejemplo, de
+float32 a int8) para reducir el tamaño del modelo y acelerar la inferencia
 
 // C)
-
-
-
+dimension: 384
 
 // D)
-
-
-
+se usa PoolingMode.MEAN para promediar los vectores de embedding de cada token y obtener un solo vector representativo
 
 ```
 

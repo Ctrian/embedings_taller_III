@@ -63,3 +63,97 @@ A diferencia del método anterior (donde los pesos eran aleatorios), LangChain4j
 | **jtokkit** | Tokenización | Convierte texto $\rightarrow$ números |
 | **DJL** | Manipulación Tensorial | Implementa la lógica de la tabla de búsqueda |
 | **LangChain4j** | Modelos Preentrenados | Proporciona vectores con significado real |
+
+---
+
+## Conexion con otros archivos del proyecto
+
+> **Estudiante:** Este documento cubre el Bloque C (embeddings). Es la continuacion natural de `embeddings_con_jtokkit.md` (Bloque B) y la base para el Bloque D (similitud coseno).
+
+### Dos caminos, un destino: de texto a vectores
+
+```
+CAMINO 1: MANUAL (DJL) — EmbeddingTest.java
+═══════════════════════════════════════════
+Texto ──→ jtokkit.encode() ──→ IntArrayList IDs
+                                   │
+                                   ├── .boxed() ──→ List<Integer>
+                                   │
+                                   ├── sliding window ──→ DatasetItem(input, target)
+                                   │
+                                   └── Integer::longValue ──→ long[] indices
+                                                                │
+                                                                ▼
+                                         NDManager.create(indices) ──→ NDArray
+                                                                │
+                                                                ▼
+                                         weights.get(indices) ──→ NDArray embedding
+                                                                │
+                                                                └─ Forma: (maxLength, outputDim)
+                                                                   Ej: (4, 256)
+                                                                   Vectores ALEATORIOS (sin significado)
+
+
+CAMINO 2: PREENTRENADO (LangChain4j) — EmbeddingTest.java + SimilitudMain.java
+═══════════════════════════════════════════════════════════════════════════════
+Texto ──→ model.embed(texto) ──→ internamente:
+              │                    1. Tokeniza con BPE
+              │                    2. Pasa tokens por red neuronal ONNX
+              │                    3. PoolingMode.MEAN (promedia tokens → 1 vector)
+              │
+              ▼
+         Embedding vector de 384 dimensiones
+         Vectores PREENTRENADOS (con significado semantico)
+              │
+              ├──→ SimilitudMain.java: CosineSimilarity.between(a, b)
+              ├──→ BusquedaSemanticaMain.java: buscar documentos relevantes
+              └──→ InMemoryEmbeddingStoreMain.java: store + busqueda con API
+```
+
+### Por que existen DOS caminos:
+
+| Aspecto | DJL (Manual) | LangChain4j (Preentrenado) |
+|---------|-------------|---------------------------|
+| Pesos | Aleatorios (random uniform) | Entrenados en corpus masivo |
+| Significado | No captura semantica | Si captura semantica |
+| Dimension | Configurable (ej: 256) | Fija: 384 (AllMiniLmL6V2) |
+| Uso | Educativo (entender lookup table) | Produccion (similitud, busqueda) |
+| Requiere ONNX | No | Si (modelo .onnx + tokenizer.json) |
+| Archivo principal | `EmbeddingTest.java` | `EmbeddingTest.java`, `SimilitudMain.java` |
+
+### Conexion con 02.conexionAPI:
+
+El modelo `AllMiniLmL6V2` que aparece aqui es el MISMO que usan en `02.conexionAPI`:
+- `SimilitudMain.java` — calcula similitud coseno entre embeddings
+- `BusquedaSemanticaMain.java` — busca el documento mas relevante
+- `InMemoryEmbeddingStoreMain.java` — busqueda con API de LangChain4j
+- `EmbeddingModelMain.java` — alternativa: modelo ONNX custom con `PoolingMode.MEAN`
+
+### Pregunta integradora probable:
+
+**"Explica el flujo completo desde texto crudo hasta busqueda semantica"**
+
+```
+Texto crudo
+   │
+   ▼ (Bloque A: Regex split)
+Tokens: ["Hello", ",", "world", "!"]
+   │
+   ▼ (Bloque B: jtokkit BPE)
+IDs: [15496, 11, 995, 0]
+   │
+   ▼ (Bloque C: Embedding)
+Vectores: [[0.23, -0.45, ...], [0.12, 0.78, ...], ...]
+   │
+   ▼ (Bloque D: Similitud coseno)
+Score: cos(query_vector, doc_vector) = 0.87
+   │
+   ▼ (Resultado)
+"El documento mas relevante es: ..."
+```
+
+### Ver tambien:
+- `tokenizer-notas-estudio.md` — Bloque A: tokenizacion manual
+- `embeddings_con_jtokkit.md` — Bloque B: jtokkit y sliding window
+- `GUIA_DE_ESTUDIO.md` (raiz) — Ejercicios C1-C4 con claves de correccion
+- `REPASO_EXAMEN.md` (raiz) — Repaso integrador de todos los bloques

@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  */
 public class TestTokenizerMain {
 
-    public static final String PATH = "D:/Taller III/embedings/01.embeddings/the-verdict.txt";
+    public static final String PATH = "D:/Taller III/embedings/01.embeddings/vocabularioTest.txt";
 
     /**
      * Genera un vocabulario BÁSICO a partir del archivo de texto.
@@ -106,8 +106,8 @@ public class TestTokenizerMain {
         // Paso 5: Agregar tokens especiales al vocabulario
         // <|endoftext|> se usa como separador entre documentos
         // <|unk|> reemplaza palabras que no existen en el vocabulario
-        all_words.add("<|endoftext|>");
         all_words.add("<|unk|>");
+        all_words.add("<|endoftext|>");
 
         // Paso 6: Asignar IDs secuenciales (los tokens especiales quedan al final)
         AtomicInteger counter = new AtomicInteger(0);
@@ -145,7 +145,7 @@ public class TestTokenizerMain {
                 .forEach(System.out::println);
 
         // Texto de prueba: contiene comillas, comas, puntos, apóstrofes
-        var text = "\"It's the last he painted, you know,\" Mrs. Gisburn said with pardonable pride.";
+        var text = "hello python world";
 
         // Crea el tokenizador V1 con el vocabulario básico
         // Internamente construye dos mapas: palabra→ID y ID→palabra
@@ -170,22 +170,27 @@ public class TestTokenizerMain {
         // Genera vocabulario extendido con <|endoftext|> y <|unk|>
         var vocabExt = vocabularioExtendido(PATH);
 
+        // Muestra los primeros 51 tokens del vocabulario para inspección
+        System.out.println("=== Primeros 51 tokens del vocabulario básico ===");
+        vocabExt.stream()
+                .takeWhile(it -> it.tokenId() < 51)
+                .forEach(System.out::println);
+
         // Muestra los últimos tokens (incluye los especiales)
         // skip(vocab.size() - 5) salta todos excepto los últimos 5
         // NOTA: usa vocab.size() (básico) como referencia, pero vocabExt tiene 2 más
         System.out.println("\n=== Últimos tokens del vocabulario extendido (incluye especiales) ===");
         vocabExt.stream()
-                .skip(vocab.size() - 5)
+                .skip(vocab.size() - 1)
                 .forEach(System.out::println);
 
         // Dos textos independientes que se van a combinar en uno solo
         // "Hello" NO está en el vocabulario → en V1 se ignoraría, en V2 se reemplaza por <|unk|>
-        var text1 = "Hello, do you like tea?";
-        var text2 = "In the sunlit terraces of the palace.";
+        var text1 = "hello python world";
 
         // Se combinan con <|endoftext|> como separador entre documentos
         // El doble espacio es para que la regex separe "<|endoftext|>" como token propio
-        var textCombinado = text1 + "  <|endoftext|>  " + text2;
+        var textCombinado = text1;
 
         // Crea tokenizador V2 con el vocabulario extendido
         // La diferencia clave: getOrDefault(token, strToInt.get("<|unk|>"))
