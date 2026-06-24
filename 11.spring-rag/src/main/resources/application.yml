@@ -6,20 +6,36 @@ app:
   aimodel: qwen/qwen3-32b
 
 spring:
+  docker:
+    compose:
+      enabled: true
+      file: 11.spring-rag/docker-compose.yml
+
   ai:
     model:
+      chat: openai
       embedding: transformers
+
+    openai:
+      api-key: ${app.key}
+      base-url: https://api.groq.com/openai/v1
+      chat:
+        model: ${app.aimodel}
+
     embedding:
       transformer:
         onnx:
           model-uri: classpath:models/model.onnx
         tokenizer:
           uri: classpath:models/tokenizer.json
-    openai:
-      api-key: ${app.key}
-      base-url: http://localhost:8080
-      chat:
-        model: ${app.aimodel}
+
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        collection-name: spring-ai
+        initialize-schema: true
+        use-tls: false
 
 logging:
   level:

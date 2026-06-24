@@ -23,6 +23,9 @@ public class EmbeddingProcessor {
 
         System.out.println("EmbeddingModel: " + embeddingModel);
         System.out.println("VectorStore: " + vectorStore);
+
+        // agregamos
+        vectorStore.add(docs);
     }
 
 }

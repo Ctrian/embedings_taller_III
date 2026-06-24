@@ -37,6 +37,9 @@ dependencies {
     // EIPs
     implementation("org.apache.camel.springboot:camel-spring-boot-starter:4.20.0")
     implementation("org.apache.camel.springboot:camel-file-starter:4.20.0")
+
+    // -- Docker
+    runtimeOnly("org.springframework.boot:spring-boot-docker-compose")
 }
 
 dependencyManagement {
