@@ -1,6 +1,5 @@
 package com.programacion.taller3.services;
 
-import com.openai.services.blocking.EmbeddingService;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
