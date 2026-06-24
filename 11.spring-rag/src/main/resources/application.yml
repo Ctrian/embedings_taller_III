@@ -1,0 +1,26 @@
+server:
+  port: 8090
+
+app:
+  key: ${GROQ_API_KEY:}
+  aimodel: qwen/qwen3-32b
+
+spring:
+  ai:
+    model:
+      embedding: transformers
+    embedding:
+      transformer:
+        onnx:
+          model-uri: classpath:models/model.onnx
+        tokenizer:
+          uri: classpath:models/tokenizer.json
+    openai:
+      api-key: ${app.key}
+      base-url: http://localhost:8080
+      chat:
+        model: ${app.aimodel}
+
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG
